@@ -15,15 +15,31 @@ import pandas as pd
 EXCEL_PATH = os.path.join(os.path.dirname(__file__), "Cambium_Import_Details.xlsx")
 DATA_FILE  = os.path.join(os.path.dirname(__file__), "data.json")
 
+def sanitize(data):
+    """Replace NaN/Inf with safe values so json.dumps never outputs NaN."""
+    import math
+    clean = []
+    for row in data:
+        new_row = {}
+        for k, v in row.items():
+            if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                new_row[k] = ""
+            else:
+                new_row[k] = v
+        clean.append(new_row)
+    return clean
+
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE) as f:
-            return json.load(f)
-    df = pd.read_excel(EXCEL_PATH, header=0)
+            data = json.load(f)
+        return sanitize(data)
+    df = pd.read_excel(EXCEL_PATH, header=1)
     df["Brand"] = df["Brand"].str.strip().str.title()
     df["Asin"]  = df["Asin"].fillna("")
     df["SR NO"] = range(1, len(df) + 1)
     data = df.to_dict(orient="records")
+    data = sanitize(data)
     with open(DATA_FILE, "w") as f:
         json.dump(data, f)
     return data
