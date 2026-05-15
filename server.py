@@ -30,20 +30,22 @@ def sanitize(data):
     return clean
 
 def load_data():
+    if os.path.exists(EXCEL_PATH):
+        df = pd.read_excel(EXCEL_PATH, header=0)
+        df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
+        df["Brand"] = df["Brand"].str.strip().str.title()
+        df["Asin"]  = df["Asin"].fillna("")
+        df["SR NO"] = range(1, len(df) + 1)
+        data = df.to_dict(orient="records")
+        data = sanitize(data)
+        with open(DATA_FILE, "w") as f:
+            json.dump(data, f)
+        return data
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE) as f:
             data = json.load(f)
         return sanitize(data)
-    df = pd.read_excel(EXCEL_PATH, header=0)
-    df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
-    df["Brand"] = df["Brand"].str.strip().str.title()
-    df["Asin"]  = df["Asin"].fillna("")
-    df["SR NO"] = range(1, len(df) + 1)
-    data = df.to_dict(orient="records")
-    data = sanitize(data)
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f)
-    return data
+    return []
 
 DB: list = load_data()
 UNDO_STACK: list = []
