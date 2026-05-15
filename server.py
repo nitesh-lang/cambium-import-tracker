@@ -34,7 +34,8 @@ def load_data():
         with open(DATA_FILE) as f:
             data = json.load(f)
         return sanitize(data)
-    df = pd.read_excel(EXCEL_PATH, header=1)
+    df = pd.read_excel(EXCEL_PATH, header=0)
+    df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
     df["Brand"] = df["Brand"].str.strip().str.title()
     df["Asin"]  = df["Asin"].fillna("")
     df["SR NO"] = range(1, len(df) + 1)
