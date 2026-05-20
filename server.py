@@ -31,9 +31,19 @@ def sanitize(data):
 
 def load_data():
     if os.path.exists(EXCEL_PATH):
-        df = pd.read_excel(EXCEL_PATH, header=0)
-        df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
-        df["Brand"] = df["Brand"].str.strip().str.title()
+        # Auto-detect header row (look for "Brand" or "SKU" in first 5 rows)
+        probe = pd.read_excel(EXCEL_PATH, header=None, nrows=5)
+        header_row = 0
+        for i in range(min(5, len(probe))):
+            row_vals = [str(v).strip() for v in probe.iloc[i]]
+            if any(v in ("Brand", "SKU", "Asin") for v in row_vals):
+                header_row = i
+                break
+        df = pd.read_excel(EXCEL_PATH, header=header_row)
+        # Drop columns with NaN/unnamed names
+        df.columns = [str(c) if pd.notna(c) else f"_drop_{i}" for i, c in enumerate(df.columns)]
+        df = df.loc[:, ~df.columns.str.startswith(("Unnamed", "_drop_"))]
+        df["Brand"] = df["Brand"].fillna("").astype(str).str.strip().str.title()
         df["Asin"]  = df["Asin"].fillna("")
         df["SR NO"] = range(1, len(df) + 1)
         data = df.to_dict(orient="records")
