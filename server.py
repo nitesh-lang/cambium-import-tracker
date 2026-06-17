@@ -43,6 +43,22 @@ def load_data():
         # Drop columns with NaN/unnamed names
         df.columns = [str(c) if pd.notna(c) else f"_drop_{i}" for i, c in enumerate(df.columns)]
         df = df.loc[:, ~df.columns.str.startswith(("Unnamed", "_drop_"))]
+        # Map ETA column (Excel may name it "Pipeline Inventory - ETA")
+        for cand in ("Pipeline Inventory - ETA", "Pipeline Inventory-ETA", "ETA (Date)"):
+            if cand in df.columns and "ETA" not in df.columns:
+                df = df.rename(columns={cand: "ETA"})
+                break
+        # Normalize ETA to YYYY-MM-DD string (date picker format)
+        if "ETA" in df.columns:
+            def _fmt_eta(v):
+                if pd.isna(v):
+                    return ""
+                try:
+                    return pd.to_datetime(v).strftime("%Y-%m-%d")
+                except Exception:
+                    s = str(v).strip()
+                    return "" if s in ("-", "nan", "NaT") else s
+            df["ETA"] = df["ETA"].apply(_fmt_eta)
         df["Brand"] = df["Brand"].fillna("").astype(str).str.strip().str.title()
         df["Asin"]  = df["Asin"].fillna("")
         df["SR NO"] = range(1, len(df) + 1)
