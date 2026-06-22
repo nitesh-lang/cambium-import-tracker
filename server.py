@@ -53,11 +53,13 @@ def load_data():
             def _fmt_eta(v):
                 if pd.isna(v):
                     return ""
-                try:
-                    return pd.to_datetime(v).strftime("%Y-%m-%d")
-                except Exception:
-                    s = str(v).strip()
-                    return "" if s in ("-", "nan", "NaT") else s
+                s = str(v).strip()
+                if s in ("-", "", "nan", "NaT", "0", "1970-01-01"):
+                    return ""
+                dt = pd.to_datetime(s, errors="coerce", dayfirst=True)
+                if pd.isna(dt) or dt.year <= 1970:
+                    return ""
+                return dt.strftime("%Y-%m-%d")
             df["ETA"] = df["ETA"].apply(_fmt_eta)
         df["Brand"] = df["Brand"].fillna("").astype(str).str.strip().str.title()
         df["Asin"]  = df["Asin"].fillna("")
