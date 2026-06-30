@@ -652,7 +652,7 @@ function render(q=""){
         const rawVal = val ? toInputDate(val) : "";
         td.innerHTML = `<div class="eta-wrap">
           ${displayVal ? `<span class="eta-badge">${displayVal}</span>` : '<span class="empty-cell">—</span>'}
-          ${/^\d{4}-\d{2}-\d{2}$/.test(String(val||"")) ? `<input type="date" class="eta-picker" value="${rawVal}" data-rowidx="${rawData.indexOf(row)}" title="Pick ETA date">` : `<input type="text" class="eta-picker" value="${String(val||"").replace(/"/g,"&quot;")}" data-rowidx="${rawData.indexOf(row)}" placeholder="ETA / dates" title="Type ETA (text or dates)">`}
+          ${/[&,]| to /i.test(String(val||"")) ? `<input type="text" class="eta-picker" value="${String(val||"").replace(/"/g,"&quot;")}" data-rowidx="${rawData.indexOf(row)}" placeholder="ETA / dates" title="Type ETA (text or dates)">` : `<input type="date" class="eta-picker" value="${rawVal}" data-rowidx="${rawData.indexOf(row)}" title="Pick ETA date">` : `<input type="text" class="eta-picker" value="${String(val||"").replace(/"/g,"&quot;")}" data-rowidx="${rawData.indexOf(row)}" placeholder="ETA / dates" title="Type ETA (text or dates)">`}
         </div>`;
         td.querySelector(".eta-picker").addEventListener("change", function(){
           const ridx = parseInt(this.dataset.rowidx);
