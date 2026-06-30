@@ -56,10 +56,11 @@ def load_data():
                 s = str(v).strip()
                 if s in ("-", "", "nan", "NaT", "0", "1970-01-01"):
                     return ""
+                # If it parses as a single clean date, normalize it; otherwise keep the raw text (ranges, "&", notes)
                 dt = pd.to_datetime(s, errors="coerce", dayfirst=True)
-                if pd.isna(dt) or dt.year <= 1970:
-                    return ""
-                return dt.strftime("%Y-%m-%d")
+                if pd.notna(dt) and dt.year > 1970 and ("&" not in s) and ("," not in s) and (" to " not in s.lower()):
+                    return dt.strftime("%Y-%m-%d")
+                return s
             df["ETA"] = df["ETA"].apply(_fmt_eta)
         df["Brand"] = df["Brand"].fillna("").astype(str).str.strip().str.title()
         df["Asin"]  = df["Asin"].fillna("")
@@ -651,7 +652,7 @@ function render(q=""){
         const rawVal = val ? toInputDate(val) : "";
         td.innerHTML = `<div class="eta-wrap">
           ${displayVal ? `<span class="eta-badge">${displayVal}</span>` : '<span class="empty-cell">—</span>'}
-          <input type="date" class="eta-picker" value="${rawVal}" data-rowidx="${rawData.indexOf(row)}" title="Pick ETA date">
+          ${/^\d{4}-\d{2}-\d{2}$/.test(String(val||"")) ? `<input type="date" class="eta-picker" value="${rawVal}" data-rowidx="${rawData.indexOf(row)}" title="Pick ETA date">` : `<input type="text" class="eta-picker" value="${String(val||"").replace(/"/g,"&quot;")}" data-rowidx="${rawData.indexOf(row)}" placeholder="ETA / dates" title="Type ETA (text or dates)">`}
         </div>`;
         td.querySelector(".eta-picker").addEventListener("change", function(){
           const ridx = parseInt(this.dataset.rowidx);
