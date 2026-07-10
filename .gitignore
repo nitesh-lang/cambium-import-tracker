@@ -1,3 +1,31 @@
+# ─────────────────────────────────────────────────────────────
+# Cambium Import Tracker — keep secrets & business data out of git.
+# ─────────────────────────────────────────────────────────────
+
+# Python
 venv/
+.venv/
+env/
 __pycache__/
 *.pyc
+*.pyo
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+
+# Business data — DO NOT commit (supplier / import details, PII)
+*.xlsx
+*.xls
+*.csv
+data.json
+
+# Office / OS lock & temp files
+~$*
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
