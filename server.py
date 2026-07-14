@@ -70,10 +70,14 @@ def load_data():
         with open(DATA_FILE, "w") as f:
             json.dump(data, f)
         return data
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE) as f:
-            data = json.load(f)
-        return sanitize(data)
+    # Fallback: read a prepared data.json. On the local machine this sits next to
+    # server.py; on Render the business data is supplied as a Secret File (mounted
+    # at /etc/secrets/data.json) so it never has to live in the public git repo.
+    for candidate in (DATA_FILE, "/etc/secrets/data.json"):
+        if os.path.exists(candidate):
+            with open(candidate) as f:
+                data = json.load(f)
+            return sanitize(data)
     return []
 
 DB: list = load_data()
